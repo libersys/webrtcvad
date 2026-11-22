@@ -141,6 +141,48 @@ void WebRtcSpl_ResetResample48khzTo8khz(WebRtcSpl_State48khzTo8khz* state)
 }
 
 ////////////////////////////
+/////  24 kHz -> 8 kHz /////
+////////////////////////////
+
+// Libersys addition. The second half of the 48 -> 8 resampler above, entered
+// with 16-bit samples: LPBy2ShortToInt takes the place of DownBy2ShortToInt +
+// LPBy2IntToInt, as in the 48 -> 16 resampler (same int32 scaling going into
+// the 3:2 stage).
+// 24 -> 8 resampler
+void WebRtcSpl_Resample24khzTo8khz(const int16_t* in, int16_t* out,
+                                   WebRtcSpl_State24khzTo8khz* state, int32_t* tmpmem)
+{
+    ///// 24 --> 24(LP) /////
+    // int16_t  in[240]
+    // int32_t out[240]
+    /////
+    WebRtcSpl_LPBy2ShortToInt(in, 240, tmpmem + 16, state->S_24_24);
+
+    ///// 24 --> 16 /////
+    // int32_t  in[240]
+    // int32_t out[160]
+    /////
+    // copy state to and from input array
+    memcpy(tmpmem + 8, state->S_24_16, 8 * sizeof(int32_t));
+    memcpy(state->S_24_16, tmpmem + 248, 8 * sizeof(int32_t));
+    WebRtcSpl_Resample48khzTo32khz(tmpmem + 8, tmpmem, 80);
+
+    ///// 16 --> 8 /////
+    // int32_t  in[160]
+    // int16_t out[80]
+    /////
+    WebRtcSpl_DownBy2IntToShort(tmpmem, 160, out, state->S_16_8);
+}
+
+// initialize state of 24 -> 8 resampler
+void WebRtcSpl_ResetResample24khzTo8khz(WebRtcSpl_State24khzTo8khz* state)
+{
+    memset(state->S_24_24, 0, 16 * sizeof(int32_t));
+    memset(state->S_24_16, 0, 8 * sizeof(int32_t));
+    memset(state->S_16_8, 0, 8 * sizeof(int32_t));
+}
+
+////////////////////////////
 /////  8 kHz -> 48 kHz /////
 ////////////////////////////
 

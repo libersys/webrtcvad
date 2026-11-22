@@ -17,7 +17,7 @@
 #include "webrtc/common_audio/vad/vad_core.h"
 
 static const int kInitCheck = 42;
-static const int kValidRates[] = { 8000, 16000, 32000, 48000 };
+static const int kValidRates[] = { 8000, 16000, 24000, 32000, 48000 };
 static const size_t kRatesSize = sizeof(kValidRates) / sizeof(*kValidRates);
 static const int kMaxFrameLengthMs = 30;
 
@@ -77,6 +77,8 @@ int WebRtcVad_Process(VadInst* handle, int fs, const int16_t* audio_frame,
       vad = WebRtcVad_CalcVad48khz(self, audio_frame, frame_length);
   } else if (fs == 32000) {
     vad = WebRtcVad_CalcVad32khz(self, audio_frame, frame_length);
+  } else if (fs == 24000) {
+    vad = WebRtcVad_CalcVad24khz(self, audio_frame, frame_length);
   } else if (fs == 16000) {
     vad = WebRtcVad_CalcVad16khz(self, audio_frame, frame_length);
   } else if (fs == 8000) {

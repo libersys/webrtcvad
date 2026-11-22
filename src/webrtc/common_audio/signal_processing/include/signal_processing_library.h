@@ -858,6 +858,22 @@ void WebRtcSpl_Resample48khzTo8khz(const int16_t* in,
 
 void WebRtcSpl_ResetResample48khzTo8khz(WebRtcSpl_State48khzTo8khz* state);
 
+// Libersys addition: 24 kHz -> 8 kHz, for the VAD at 24 kHz. The same stages
+// as the second half of the 48 -> 8 resampler (24 LP, 24 -> 16, 16 -> 8).
+// One call converts 10 ms: in[240] -> out[80]; tmpmem holds 240 + 16 int32.
+typedef struct {
+  int32_t S_24_24[16];
+  int32_t S_24_16[8];
+  int32_t S_16_8[8];
+} WebRtcSpl_State24khzTo8khz;
+
+void WebRtcSpl_Resample24khzTo8khz(const int16_t* in,
+                                   int16_t* out,
+                                   WebRtcSpl_State24khzTo8khz* state,
+                                   int32_t* tmpmem);
+
+void WebRtcSpl_ResetResample24khzTo8khz(WebRtcSpl_State24khzTo8khz* state);
+
 typedef struct {
   int32_t S_8_16[8];
   int32_t S_16_12[8];

@@ -26,6 +26,7 @@ typedef struct VadInstT_ {
   int vad;
   int32_t downsampling_filter_states[4];
   WebRtcSpl_State48khzTo8khz state_48_to_8;
+  WebRtcSpl_State24khzTo8khz state_24_to_8;  // Libersys addition.
   int16_t noise_means[kTableSize];
   int16_t speech_means[kTableSize];
   int16_t noise_stds[kTableSize];
@@ -81,6 +82,7 @@ int WebRtcVad_set_mode_core(VadInstT* self, int mode);
 /****************************************************************************
  * WebRtcVad_CalcVad48khz(...)
  * WebRtcVad_CalcVad32khz(...)
+ * WebRtcVad_CalcVad24khz(...)
  * WebRtcVad_CalcVad16khz(...)
  * WebRtcVad_CalcVad8khz(...)
  *
@@ -102,6 +104,9 @@ int WebRtcVad_CalcVad48khz(VadInstT* inst,
                            const int16_t* speech_frame,
                            size_t frame_length);
 int WebRtcVad_CalcVad32khz(VadInstT* inst,
+                           const int16_t* speech_frame,
+                           size_t frame_length);
+int WebRtcVad_CalcVad24khz(VadInstT* inst,
                            const int16_t* speech_frame,
                            size_t frame_length);
 int WebRtcVad_CalcVad16khz(VadInstT* inst,

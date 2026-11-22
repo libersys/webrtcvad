@@ -14,7 +14,9 @@ If you're using this library with Electron, you should probably use [electron-re
 
 ## Usage
 
-webrtcvad works with single-channel, 16-bit, signed-integer linear PCM audio sampled at 8kHz, 16kHz, 32kHz, or 48kHz.
+webrtcvad works with single-channel, 16-bit, signed-integer linear PCM audio sampled at 8kHz, 16kHz, 24kHz, 32kHz, or 48kHz.
+
+24kHz is a Libersys addition (Asterisk `slin24` and Gemini Live audio, with no resampling in the caller). Like the other rates, it is brought down to 8kHz inside the library and decided by the same 8kHz detector, so on band-limited audio it decides like the 8kHz path. The constructor throws for any other rate (`SUPPORTED_SAMPLE_RATES` lists them).
 
 You can create a voice activity detector (VAD) with:
 

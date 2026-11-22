@@ -508,6 +508,9 @@ int WebRtcVad_InitCore(VadInstT* self) {
   // Initialization of 48 to 8 kHz downsampling.
   WebRtcSpl_ResetResample48khzTo8khz(&self->state_48_to_8);
 
+  // Initialization of 24 to 8 kHz downsampling (Libersys addition).
+  WebRtcSpl_ResetResample24khzTo8khz(&self->state_24_to_8);
+
   // Read initial PDF parameters.
   for (i = 0; i < kTableSize; i++) {
     self->noise_means[i] = kNoiseDataMeans[i];
@@ -625,6 +628,34 @@ int WebRtcVad_CalcVad48khz(VadInstT* inst, const int16_t* speech_frame,
 
   // Do VAD on an 8 kHz signal
   vad = WebRtcVad_CalcVad8khz(inst, speech_nb, frame_length / 6);
+
+  return vad;
+}
+
+// Libersys addition. Like the 48 kHz path: each 10 ms is brought down to
+// 8 kHz and the 8 kHz detector decides on the whole frame. Unlike it, each
+// 10 ms reads its own part of |speech_frame|.
+int WebRtcVad_CalcVad24khz(VadInstT* inst, const int16_t* speech_frame,
+                           size_t frame_length) {
+  int vad;
+  size_t i;
+  int16_t speech_nb[240];  // 30 ms in 8 kHz.
+  // |tmp_mem| is a temporary memory used by the resample function, length is
+  // frame length in 10 ms (240 samples) + 16 extra.
+  int32_t tmp_mem[240 + 16] = { 0 };
+  const size_t kFrameLen10ms24khz = 240;
+  const size_t kFrameLen10ms8khz = 80;
+  size_t num_10ms_frames = frame_length / kFrameLen10ms24khz;
+
+  for (i = 0; i < num_10ms_frames; i++) {
+    WebRtcSpl_Resample24khzTo8khz(&speech_frame[i * kFrameLen10ms24khz],
+                                  &speech_nb[i * kFrameLen10ms8khz],
+                                  &inst->state_24_to_8,
+                                  tmp_mem);
+  }
+
+  // Do VAD on an 8 kHz signal
+  vad = WebRtcVad_CalcVad8khz(inst, speech_nb, frame_length / 3);
 
   return vad;
 }
