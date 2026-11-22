@@ -620,7 +620,10 @@ int WebRtcVad_CalcVad48khz(VadInstT* inst, const int16_t* speech_frame,
   size_t num_10ms_frames = frame_length / kFrameLen10ms48khz;
 
   for (i = 0; i < num_10ms_frames; i++) {
-    WebRtcSpl_Resample48khzTo8khz(speech_frame,
+    // Libersys fix: each 10 ms reads its own part of |speech_frame| (upstream
+    // passed |speech_frame| every time, so 20 and 30 ms frames analysed their
+    // first 10 ms two or three times).
+    WebRtcSpl_Resample48khzTo8khz(&speech_frame[i * kFrameLen10ms48khz],
                                   &speech_nb[i * kFrameLen10ms8khz],
                                   &inst->state_48_to_8,
                                   tmp_mem);
@@ -633,8 +636,7 @@ int WebRtcVad_CalcVad48khz(VadInstT* inst, const int16_t* speech_frame,
 }
 
 // Libersys addition. Like the 48 kHz path: each 10 ms is brought down to
-// 8 kHz and the 8 kHz detector decides on the whole frame. Unlike it, each
-// 10 ms reads its own part of |speech_frame|.
+// 8 kHz and the 8 kHz detector decides on the whole frame.
 int WebRtcVad_CalcVad24khz(VadInstT* inst, const int16_t* speech_frame,
                            size_t frame_length) {
   int vad;

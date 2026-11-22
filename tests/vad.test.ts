@@ -70,6 +70,16 @@ describe("24 kHz", () => {
   });
 });
 
+describe("48 kHz", () => {
+  // Regression: upstream analysed only the first 10 ms of 20 and 30 ms frames (97% at 30 ms).
+  test.each([10, 20, 30])("decides like the 8 kHz path on band-limited speech (%i ms frames)", frameMs => {
+    const d8 = decide(8000, frameMs, 6);
+    const d48 = decide(48000, frameMs, 6);
+    expect(d48.length).toBe(d8.length);
+    expect(agreement(d48, d8)).toBeGreaterThanOrEqual(0.98);
+  });
+});
+
 describe("WebRtcVad Library", () => {
   let vad: VAD;
 
